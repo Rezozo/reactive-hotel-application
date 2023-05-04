@@ -29,13 +29,11 @@ class UsersConfig {
     fun users(usersRepository: UsersRepository): ReactiveUserDetailsService {
         return ReactiveUserDetailsService  { username: String ->
             usersRepository.findByEmail(username)
-                .flatMap { user ->
-                    Mono.just(
-                        User(
-                            user.email,
-                            user.password,
-                            user.authorities
-                        )
+                .map { user ->
+                    User(
+                        user.email,
+                        user.password,
+                        user.authorities
                     )
                 }
         }
