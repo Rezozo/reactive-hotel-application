@@ -8,15 +8,15 @@ import java.util.*
 import java.util.function.Function
 
 interface JwtService {
-    fun extractUserLogin(token: String): Mono<String>
+    fun extractUserLogin(token: String): String
     fun <T> extractClaim(token: String?, claimsResolver: Function<Claims?, T>?): T
-    fun generateToken(userDetails: UserDetails): Mono<String>
-    fun generateToken(extraClaims: Map<String, Any>, userDetails: UserDetails) : Mono<String>
+    fun generateToken(userDetails: UserDetails): String
+    fun generateToken(extraClaims: Map<String, Any>, userDetails: UserDetails) : String
     fun generateTokenUseRefreshToken(refreshToken: String) : Mono<String>
-    fun refreshToken(token: String) : Mono<String>
-    fun isTokenValid(token: String, userDetails: UserDetails) : Mono<Boolean>
-    fun isTokenExpired(token: String) : Mono<Boolean>
-    fun extractExpiration(token: String) : Mono<Date>
+    fun refreshToken(token: String) : String
+    fun isTokenValid(token: String, userDetails: UserDetails) : Boolean
+    fun isTokenExpired(token: String) : Boolean
+    fun extractExpiration(token: String) : Date
     fun extractAllClaims(token: String) : Claims
     fun getSignInKey() : Key
 }

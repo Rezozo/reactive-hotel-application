@@ -26,8 +26,8 @@ class JwtServiceImpl : JwtService {
     @Value("\${hotel.refreshtoken.expiration}")
     private lateinit var refreshTokenExpiration: String
 
-    override fun extractUserLogin(token: String): Mono<String> {
-        return Mono.just(extractClaim(token, { obj: Claims? -> obj!!.subject }))
+    override fun extractUserLogin(token: String): String {
+        return extractClaim(token, { obj: Claims? -> obj!!.subject })
     }
 
     override fun <T> extractClaim(token: String?, claimsResolver: Function<Claims?, T>?): T {
@@ -35,20 +35,19 @@ class JwtServiceImpl : JwtService {
         return claimsResolver!!.apply(claims)
     }
 
-    override fun generateToken(userDetails: UserDetails): Mono<String> {
+    override fun generateToken(userDetails: UserDetails): String {
         return generateToken(HashMap(), userDetails)
     }
 
-    override fun generateToken(extraClaims: Map<String, Any>, userDetails: UserDetails): Mono<String> {
-        return Mono.just(
-            Jwts
+    override fun generateToken(extraClaims: Map<String, Any>, userDetails: UserDetails): String {
+        return Jwts
             .builder()
             .setClaims(extraClaims)
             .setSubject(userDetails.username)
             .setIssuedAt(Date(System.currentTimeMillis()))
             .setExpiration(Date(System.currentTimeMillis() + tokenExpiration))
             .signWith(getSignInKey(), SignatureAlgorithm.HS256)
-            .compact())
+            .compact()
     }
 
     override fun generateTokenUseRefreshToken(refreshToken: String): Mono<String> {
@@ -65,7 +64,7 @@ class JwtServiceImpl : JwtService {
             .compact())
     }
 
-    override fun refreshToken(token: String): Mono<String> {
+    override fun refreshToken(token: String): String {
         val claims : Claims = extractAllClaims(token)
         val username = claims.subject
         val extraClaims: Map<String, Any> = HashMap(claims)
@@ -74,39 +73,33 @@ class JwtServiceImpl : JwtService {
         val newExpirationInstant : Instant = now.plus(Period.parse(refreshTokenExpiration))
         val newExpiration : Date = Date.from(newExpirationInstant)
 
-        return Mono.just(Jwts.builder()
+        return Jwts.builder()
             .setClaims(extraClaims)
             .setSubject(username)
             .setIssuedAt(Date(System.currentTimeMillis()))
             .setExpiration(newExpiration)
             .signWith(getSignInKey(), SignatureAlgorithm.HS256)
-            .compact())
+            .compact()
     }
 
-    override fun isTokenValid(token: String, userDetails: UserDetails): Mono<Boolean> {
-        return extractUserLogin(token).flatMap { username ->
-            if (username != userDetails.username) {
-                Mono.just(false)
-            } else {
-                isTokenExpired(token).flatMap { expired ->
-                    if (expired) {
-                        refreshToken(token).flatMap { newToken ->
-                            isTokenExpired(newToken).map { !it }
-                        }
-                    } else {
-                        Mono.just(true)
-                    }
-                }
-            }
+    override fun isTokenValid(token: String, userDetails: UserDetails): Boolean {
+        var newToken = token
+        val username = extractUserLogin(token)
+        if (username != userDetails.username) {
+            return false
         }
+        if (isTokenExpired(token)) {
+            newToken = refreshToken(token)
+        }
+        return !isTokenExpired(newToken)
     }
 
-    override fun isTokenExpired(token: String): Mono<Boolean> {
-        return extractExpiration(token).map { extract -> extract.before(Date()) }
+    override fun isTokenExpired(token: String): Boolean {
+        return extractExpiration(token).before(Date())
     }
 
-    override fun extractExpiration(token: String): Mono<Date> {
-        return Mono.just(extractClaim(token, { obj: Claims? -> obj!!.expiration }))
+    override fun extractExpiration(token: String): Date {
+        return extractClaim(token) { obj: Claims? -> obj!!.expiration }
     }
 
     override fun extractAllClaims(token: String): Claims {

@@ -42,24 +42,18 @@ class AuthenticationServiceImpl(private val usersService: UsersService,
     }
 
     fun authenticate(request: AuthenticationRequest): Mono<AuthenticationResponse> {
-        val auth = usersService.getByEmail(request.email)
+        return usersService.getByEmail(request.email)
             .flatMap { user ->
                 if (passwordEncoder.matches(request.password, user.password)) {
-                    jwtService.generateToken(user)
-                        .flatMap { jwtToken ->
-                            jwtService.refreshToken(jwtToken)
-                                .map { refreshToken ->
-                                    val authenticationResponse = AuthenticationResponse(
-                                        jwtToken,
-                                        refreshToken
-                                    )
-                                    return@map authenticationResponse
-                                }
-                        }
+                    val token = jwtService.generateToken(user)
+                    val refreshToken = jwtService.refreshToken(token)
+                    return@flatMap Mono.just(AuthenticationResponse(
+                        token, refreshToken
+                    ))
                 } else {
                     Mono.error(InvalidCredentialsException("Invalid email or password"))
                 }
-            }
-        return auth
+            }.switchIfEmpty(Mono.error(InvalidCredentialsException("Invalid email or password")))
     }
+
 }
