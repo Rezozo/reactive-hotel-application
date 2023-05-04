@@ -1,6 +1,7 @@
 package com.hotel.app.service.impl
 
 import com.hotel.app.dto.ReviewInfoDto
+import com.hotel.app.enums.Direction
 import com.hotel.app.exceptions.ReviewExistException
 import com.hotel.app.models.Customer
 import com.hotel.app.models.Review
@@ -36,7 +37,7 @@ class ReviewServiceImpl : ReviewService {
         return reviewrepository.findReviewInfoOneByPhone(phoneNumber)
     }
 
-    override fun getAll(direction: String?): Flux<ReviewInfoDto> {
+    override fun getAll(direction: Direction?): Flux<ReviewInfoDto> {
         if (direction != null) {
             return reviewrepository.findReviewInfoAllOrderByRateDesc(direction)
         } else {
@@ -48,7 +49,7 @@ class ReviewServiceImpl : ReviewService {
         return reviewrepository.insert(review.id, review.customer, review.rate, review.feedback)
     }
 
-    override fun updateRateAndFeetback(id: Int, rate: Byte, feedback: String): Mono<Review> {
+    override fun updateRateAndFeedback(id: Int, rate: Byte, feedback: String): Mono<Review> {
         return reviewrepository.findById(id)
             .switchIfEmpty(Mono.empty())
             .flatMap { existReview ->
@@ -62,14 +63,14 @@ class ReviewServiceImpl : ReviewService {
         return reviewrepository.deleteById(id)
     }
 
-    override fun canReview(reviewDto: ReviewInfoDto, customer: Customer): Mono<Boolean> {
+    override fun canReview(customer: Customer): Mono<Boolean> {
         return getById(customer.id)
             .flatMap<Boolean> {
                 Mono.error(ReviewExistException())
             }.switchIfEmpty(Mono.just(true))
     }
 
-    override fun canUpdate(reviewDto: ReviewInfoDto, customer: Customer): Mono<Boolean> {
+    override fun canUpdate(customer: Customer): Mono<Boolean> {
         return getById(customer.id)
             .flatMap {
                 Mono.just(true)
