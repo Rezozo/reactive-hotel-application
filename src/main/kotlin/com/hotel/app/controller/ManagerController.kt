@@ -2,6 +2,7 @@ package com.hotel.app.controller
 
 import com.hotel.app.dto.BookingInfoDto
 import com.hotel.app.dto.ReviewInfoDto
+import com.hotel.app.enums.Direction
 import com.hotel.app.models.Customer
 import com.hotel.app.service.BookingService
 import com.hotel.app.service.CustomerService
@@ -21,7 +22,7 @@ class ManagerController(val customerService: CustomerService, val bookingService
     }
 
     @RequestMapping(value = ["/bookings"], method = [RequestMethod.GET])
-    fun allBookings(@RequestParam(required = false) directionPrice : String?, @RequestParam(required = false) directionDate: String?) : Flux<BookingInfoDto>  {
+    fun allBookings(@RequestParam(required = false) directionPrice : Direction?, @RequestParam(required = false) directionDate: Direction?) : Flux<BookingInfoDto>  {
         return bookingService.getAll(directionPrice, directionDate)
     }
 
@@ -30,9 +31,9 @@ class ManagerController(val customerService: CustomerService, val bookingService
         return bookingService.getByPhoneNumber(phoneNumber)
     }
 
-    @RequestMapping(value = ["/customer/book/del"], method = [RequestMethod.DELETE])
-    fun customersBookingsDelete(@RequestParam id : Int) : Mono<Void> {
-        return bookingService.deleteById(id)
+    @RequestMapping(value = ["/customer/book/{bookingId}"], method = [RequestMethod.DELETE])
+    fun customersBookingsDelete(@PathVariable bookingId : Int) : Mono<Void> {
+        return bookingService.deleteById(bookingId)
     }
 
     @RequestMapping(value = ["/customer/review"], method = [RequestMethod.GET])
@@ -40,8 +41,8 @@ class ManagerController(val customerService: CustomerService, val bookingService
         return reviewService.getByIdInfo(id)
     }
 
-    @RequestMapping(value = ["/customer/review/del"], method = [RequestMethod.DELETE])
-    fun customersReviewDelete(@RequestParam id: Int) : Mono<Void> {
-        return reviewService.deleteById(id)
+    @RequestMapping(value = ["/customer/review/{reviewId}"], method = [RequestMethod.DELETE])
+    fun customersReviewDelete(@PathVariable reviewId: Int) : Mono<Void> {
+        return reviewService.deleteById(reviewId)
     }
 }
