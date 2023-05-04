@@ -1,6 +1,7 @@
 package com.hotel.app.service.impl
 
 import com.hotel.app.dto.BookingInfoDto
+import com.hotel.app.enums.Direction
 import com.hotel.app.models.Booking
 import com.hotel.app.models.Room
 import com.hotel.app.repository.BookingRepository
@@ -22,7 +23,7 @@ class BookingServiceImpl : BookingService {
         return bookingRepository.findBookingInfoOne(phoneNumber)
     }
 
-    override fun getAll(cost: String?, arrivalDate: String?): Flux<BookingInfoDto> {
+    override fun getAll(cost: Direction?, arrivalDate: Direction?): Flux<BookingInfoDto> {
         if (cost == null && arrivalDate != null) {
             return bookingRepository.findBookingInfoAllOrderByArrival(arrivalDate)
         } else if(cost != null && arrivalDate == null) {
@@ -72,13 +73,13 @@ class BookingServiceImpl : BookingService {
             .hasElements()
     }
 
-    override fun getCost(bookingInfoDto: BookingInfoDto, room: Room): Mono<Int> {
+    override fun getCost(bookingInfoDto: BookingInfoDto, room: Room): Int {
         val costPerDay : Int = room.price
         val arrivalDate : LocalDate = bookingInfoDto.arrivalDate
         val departureDate : LocalDate = bookingInfoDto.departureDate
 
         var days : Long = ChronoUnit.DAYS.between(arrivalDate, departureDate)
         if (days <= 0) days = 1;
-        return Mono.just((days * costPerDay).toInt())
+        return (days * costPerDay).toInt()
     }
 }
