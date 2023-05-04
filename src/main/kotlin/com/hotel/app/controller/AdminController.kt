@@ -21,7 +21,7 @@ class AdminController(val usersService: UsersService){
         return usersService.deleteById(userId)
     }
 
-    @RequestMapping(value = ["/users/roles/{userId}"], method = [RequestMethod.PUT])
+    @RequestMapping(value = ["/users/{userId}/roles"], method = [RequestMethod.PUT])
     fun updateUser(@PathVariable userId: Int) : Mono<Users> {
         return usersService.updateUsersGroup(userId, Role.Manager)
     }
