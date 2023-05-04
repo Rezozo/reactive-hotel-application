@@ -16,13 +16,13 @@ class AdminController(val usersService: UsersService){
         return usersService.all;
     }
 
-    @RequestMapping(value = ["/users/del"], method = [RequestMethod.DELETE])
-    fun deleteUser(@RequestParam id: Int) : Mono<Void> {
-        return usersService.deleteById(id)
+    @RequestMapping(value = ["/users/{userId}"], method = [RequestMethod.DELETE])
+    fun deleteUser(@PathVariable userId: Int) : Mono<Void> {
+        return usersService.deleteById(userId)
     }
 
-    @RequestMapping(value = ["/users/update"], method = [RequestMethod.PUT])
-    fun updateUser(@RequestParam id: Int) : Mono<Users> {
-        return usersService.updateUsersGroup(id, Role.Manager)
+    @RequestMapping(value = ["/users/roles/{userId}"], method = [RequestMethod.PUT])
+    fun updateUser(@PathVariable userId: Int) : Mono<Users> {
+        return usersService.updateUsersGroup(userId, Role.Manager)
     }
 }

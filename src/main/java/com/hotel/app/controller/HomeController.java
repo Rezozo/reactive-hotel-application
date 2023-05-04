@@ -1,6 +1,7 @@
 package com.hotel.app.controller;
 
 import com.hotel.app.dto.RoomInfoDto;
+import com.hotel.app.enums.Direction;
 import com.hotel.app.models.RoomType;
 import com.hotel.app.service.RoomService;
 import com.hotel.app.service.RoomTypeService;
@@ -29,24 +30,24 @@ public class HomeController {
     }
 
     @RequestMapping(value = "/allrooms", method = RequestMethod.GET)
-    public Flux<RoomInfoDto> homeRooms(@RequestParam(required = false) Boolean status, @RequestParam(required = false) String direction,
+    public Flux<RoomInfoDto> homeRooms(@RequestParam(required = false) Boolean status, @RequestParam(required = false) Direction direction,
                                        @DateTimeFormat(pattern = "yyyy-MM-dd") @RequestParam(required = false) LocalDate arrivalDate,
                                        @DateTimeFormat(pattern = "yyyy-MM-dd") @RequestParam(required = false) LocalDate departureDate) {
         return roomService.getAll(status, direction, arrivalDate, departureDate);
     }
 
-    @RequestMapping(value = "/{typetitle}/rooms", method = RequestMethod.GET)
-    public Flux<RoomInfoDto> homeOneType(@PathVariable String typetitle, @RequestParam(required = false) Boolean status,
-                                         @RequestParam(required = false) String direction,
+    @RequestMapping(value = "/{typeTitle}/rooms", method = RequestMethod.GET)
+    public Flux<RoomInfoDto> homeOneType(@PathVariable String typeTitle, @RequestParam(required = false) Boolean status,
+                                         @RequestParam(required = false) Direction direction,
                                          @DateTimeFormat(pattern = "yyyy-MM-dd") @RequestParam(required = false) LocalDate arrivalDate,
                                          @DateTimeFormat(pattern = "yyyy-MM-dd") @RequestParam(required = false) LocalDate departureDate) {
-        return roomService.getAllByType(typetitle, status, direction, arrivalDate, departureDate)
+        return roomService.getAllByType(typeTitle, status, direction, arrivalDate, departureDate)
                 .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)));
     }
 
-    @RequestMapping(value = "/{typetitle}/rooms/{title}", method = RequestMethod.GET)
-    public Mono<ResponseEntity<RoomInfoDto>> homeOneRoom(@PathVariable String typetitle, @PathVariable String title) {
-        return roomService.getByTitleAndType(typetitle, title)
+    @RequestMapping(value = "/{typeTitle}/rooms/{title}", method = RequestMethod.GET)
+    public Mono<ResponseEntity<RoomInfoDto>> homeOneRoom(@PathVariable String typeTitle, @PathVariable String title) {
+        return roomService.getByTitleAndType(typeTitle, title)
                 .map(ResponseEntity::ok)
                 .defaultIfEmpty(ResponseEntity.notFound().build());
     }
