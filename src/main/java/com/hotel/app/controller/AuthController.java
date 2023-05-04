@@ -50,7 +50,7 @@ public class AuthController {
     }
 
     @RequestMapping(value = "/logout", method = RequestMethod.GET)
-    public ResponseEntity<?> logout (){
-        return ResponseEntity.ok().body("Logout");
+    public Mono<ResponseEntity<?>> logout (){
+        return Mono.just(ResponseEntity.ok().body("Logout"));
     }
 }
