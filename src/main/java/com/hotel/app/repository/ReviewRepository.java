@@ -1,6 +1,7 @@
 package com.hotel.app.repository;
 
 import com.hotel.app.dto.ReviewInfoDto;
+import com.hotel.app.enums.Direction;
 import com.hotel.app.models.Review;
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
@@ -29,5 +30,5 @@ public interface ReviewRepository extends R2dbcRepository<Review, Integer> {
             "FROM Review r, Customer c WHERE c.id = r.customer_id " +
             "ORDER BY CASE WHEN :direction = 'ASC' THEN r.rate END ASC, " +
             "CASE WHEN :direction = 'DESC' THEN r.rate END DESC")
-    Flux<ReviewInfoDto> findReviewInfoAllOrderByRateDesc(String direction);
+    Flux<ReviewInfoDto> findReviewInfoAllOrderByRateDesc(Direction direction);
 }

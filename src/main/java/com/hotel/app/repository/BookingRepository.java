@@ -1,6 +1,7 @@
 package com.hotel.app.repository;
 
 import com.hotel.app.dto.BookingInfoDto;
+import com.hotel.app.enums.Direction;
 import com.hotel.app.models.Booking;
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
@@ -25,13 +26,13 @@ public interface BookingRepository extends R2dbcRepository<Booking, Integer> {
             "from booking b, customer c, room r where c.id = b.customer_id and r.id = b.room_id " +
             "ORDER BY CASE WHEN :price = 'ASC' THEN b.total_cost END ASC, " +
             "CASE WHEN :price = 'DESC' THEN b.total_cost END DESC")
-    Flux<BookingInfoDto> findBookingInfoAllOrderByPrice(String price);
+    Flux<BookingInfoDto> findBookingInfoAllOrderByPrice(Direction price);
 
     @Query(value = "Select b.id, c.full_name, c.phone_number, r.title, b.arrival_date, b.departure_date, b.total_cost " +
             "from booking b, customer c, room r where c.id = b.customer_id and r.id = b.room_id " +
             "ORDER BY CASE WHEN :arrival = 'ASC' THEN b.arrival_date END ASC, " +
             "CASE WHEN :arrival = 'DESC' THEN b.arrival_date END DESC")
-    Flux<BookingInfoDto> findBookingInfoAllOrderByArrival( String arrival);
+    Flux<BookingInfoDto> findBookingInfoAllOrderByArrival(Direction arrival);
 
     @Query(value = "SELECT booking.arrival_date " +
             "FROM booking " +

@@ -1,6 +1,7 @@
 package com.hotel.app.repository;
 
 import com.hotel.app.dto.RoomInfoDto;
+import com.hotel.app.enums.Direction;
 import com.hotel.app.models.Room;
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
@@ -26,7 +27,7 @@ public interface RoomRepository extends R2dbcRepository<Room, Integer> {
             "WHERE (:status IS NULL OR r.room_status = :status) " +
             "ORDER BY CASE WHEN :direction = 'ASC' THEN r.price END ASC, " +
             "CASE WHEN :direction = 'DESC' THEN r.price END DESC")
-    Flux<RoomInfoDto> findRoomInfoAllByStatusOrderByPrice(Boolean status, String direction);
+    Flux<RoomInfoDto> findRoomInfoAllByStatusOrderByPrice(Boolean status, Direction direction);
 
     @Query("SELECT r.id, t.type_title, r.room_number, r.title, r.description, r.image_path, r.price, r.room_status " +
             "FROM room r " +
@@ -47,5 +48,5 @@ public interface RoomRepository extends R2dbcRepository<Room, Integer> {
             "WHERE t.type_title = :title and (:status IS NULL OR r.room_status = :status) " +
             "ORDER BY CASE WHEN :direction = 'ASC' THEN r.price END ASC, " +
             "CASE WHEN :direction = 'DESC' THEN r.price END DESC")
-    Flux<RoomInfoDto> findRoomByTypeAndStatusOrderByPrice(@Param("title") String type_title, @Param("status") Boolean status, @Param("direction") String direction);
+    Flux<RoomInfoDto> findRoomByTypeAndStatusOrderByPrice(@Param("title") String type_title, @Param("status") Boolean status, @Param("direction") Direction direction);
 }

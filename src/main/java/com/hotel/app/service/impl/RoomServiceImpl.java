@@ -1,6 +1,7 @@
 package com.hotel.app.service.impl;
 
 import com.hotel.app.dto.RoomInfoDto;
+import com.hotel.app.enums.Direction;
 import com.hotel.app.models.Room;
 import com.hotel.app.repository.RoomRepository;
 import com.hotel.app.service.BookingService;
@@ -36,7 +37,7 @@ public class RoomServiceImpl implements RoomService {
     }
 
     @Override
-    public Flux<RoomInfoDto> getAllByType(String type_title, Boolean status, String direction, LocalDate arrivalDate, LocalDate departureDate) {
+    public Flux<RoomInfoDto> getAllByType(String type_title, Boolean status, Direction direction, LocalDate arrivalDate, LocalDate departureDate) {
         if (arrivalDate == null || departureDate == null) {
             if (direction == null) {
                 return roomRepository.findRoomByTypeAndStatus(type_title, status);
@@ -57,7 +58,7 @@ public class RoomServiceImpl implements RoomService {
     }
 
     @Override
-    public Flux<RoomInfoDto> getAll(Boolean status, String direction, LocalDate arrivalDate, LocalDate departureDate) {
+    public Flux<RoomInfoDto> getAll(Boolean status, Direction direction, LocalDate arrivalDate, LocalDate departureDate) {
         if (arrivalDate == null || departureDate == null) {
             if (direction == null) {
                 return roomRepository.findRoomInfoAllByStatus(status);
