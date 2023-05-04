@@ -9,9 +9,8 @@ import com.hotel.app.service.impl.JwtServiceImpl
 import com.hotel.app.service.impl.UsersServiceImpl
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.security.core.userdetails.ReactiveUserDetailsService
 import org.springframework.security.core.userdetails.User
-import org.springframework.security.core.userdetails.UserDetails
-import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.password.PasswordEncoder
 import reactor.core.publisher.Mono
 
@@ -27,8 +26,8 @@ class UsersConfig {
     }
 
     @Bean
-    fun users(usersRepository: UsersRepository): UserDetailsService {
-        return UserDetailsService { username: String ->
+    fun users(usersRepository: UsersRepository): ReactiveUserDetailsService {
+        return ReactiveUserDetailsService  { username: String ->
             usersRepository.findByEmail(username)
                 .flatMap { user ->
                     Mono.just(
@@ -37,8 +36,8 @@ class UsersConfig {
                             user.password,
                             user.authorities
                         )
-                    ) as Mono<UserDetails>
-                }.toFuture().get()
+                    )
+                }
         }
     }
 
@@ -51,7 +50,6 @@ class UsersConfig {
     ): AuthenticationServiceImpl {
         return AuthenticationServiceImpl(usersService, passwordEncoder, jwtService, customerService)
     }
-
 }
 
 

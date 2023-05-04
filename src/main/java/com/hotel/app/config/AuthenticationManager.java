@@ -5,9 +5,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
@@ -15,30 +13,23 @@ import reactor.core.publisher.Mono;
 @AllArgsConstructor
 public class AuthenticationManager implements ReactiveAuthenticationManager {
     private final JwtServiceImpl jwtService;
-    private final UserDetailsService userDetailsService;
+    private final ReactiveUserDetailsService userDetailsService;
 
     @Override
     public Mono<Authentication> authenticate(Authentication authentication) {
         String authToken = authentication.getCredentials().toString();
-
-        Mono<String> username = jwtService.extractUserLogin(authToken);
-
-        return SecurityContextHolder.getContext().getAuthentication() == null
-                ? username.flatMap(name -> {
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(name);
-            return jwtService.isTokenValid(authToken, userDetails)
-                    .flatMap(valid -> {
-                        if (valid) {
-                            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                                    userDetails,
-                                    null,
-                                    userDetails.getAuthorities()
-                            );
-                            return Mono.just(authenticationToken);
-                        } else {
-                            return Mono.empty();
-                        }
-                    });
-        }) : Mono.empty();
+        String username = jwtService.extractUserLogin(authToken);
+        return userDetailsService.findByUsername(username)
+                .flatMap(userDetails -> {
+                    if (jwtService.isTokenValid(authToken, userDetails)) {
+                        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                                userDetails,
+                                null,
+                                userDetails.getAuthorities()
+                        );
+                        return Mono.just(authenticationToken);
+                    }
+                    return Mono.empty();
+                });
     }
 }
