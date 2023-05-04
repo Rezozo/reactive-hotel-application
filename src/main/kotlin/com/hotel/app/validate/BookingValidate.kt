@@ -33,25 +33,25 @@ class BookingValidate {
 
         val result: Mono<Boolean> = bookingService.canBook(bookingInfoDto, arrivalDates, departureDates)
         return result.flatMap { isValid ->
-            if (isValid) {
-                throw RoomOccupiedException()
+            if (!isValid) {
+                return@flatMap Mono.error(RoomOccupiedException())
             }
 
             if (bookingInfoDto.arrivalDate.isAfter(bookingInfoDto.departureDate)) {
-                throw ArrivalException()
+                return@flatMap Mono.error(ArrivalException())
             }
 
             val now: LocalDate = LocalDate.now()
             val arrivalInstant: LocalDate = bookingInfoDto.arrivalDate
 
             if (now.isAfter(arrivalInstant)) {
-                throw DatePastException()
+                return@flatMap Mono.error(DatePastException())
             }
 
             val maxDate: LocalDate = arrivalInstant.plusDays(getMaxDays())
 
             if (bookingInfoDto.departureDate.isAfter(maxDate)) {
-                throw MaxPeriodException()
+                return@flatMap Mono.error(MaxPeriodException())
             }
 
             Mono.just(true)
