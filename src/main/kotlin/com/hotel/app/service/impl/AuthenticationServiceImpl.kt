@@ -5,9 +5,11 @@ import com.hotel.app.config.request.RegisterRequest
 import com.hotel.app.config.response.AuthenticationResponse
 import com.hotel.app.enums.Role
 import com.hotel.app.models.Customer
+import com.hotel.app.models.Token
 import com.hotel.app.models.Users
 import com.hotel.app.service.CustomerService
 import com.hotel.app.service.JwtService
+import com.hotel.app.service.TokenService
 import com.hotel.app.service.UsersService
 import org.apache.http.auth.InvalidCredentialsException
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -16,7 +18,8 @@ import reactor.core.publisher.Mono
 class AuthenticationServiceImpl(private val usersService: UsersService,
                                 private val passwordEncoder: PasswordEncoder,
                                 private val jwtService: JwtService,
-                                private val customerService: CustomerService
+                                private val customerService: CustomerService,
+                                private val tokenService: TokenService
 ) {
     fun register(request: RegisterRequest) : Mono<Customer> {
         val user = Users(
@@ -47,6 +50,7 @@ class AuthenticationServiceImpl(private val usersService: UsersService,
                 if (passwordEncoder.matches(request.password, user.password)) {
                     val token = jwtService.generateToken(user)
                     val refreshToken = jwtService.refreshToken(token)
+                    tokenService.save(Token(user.id, token, refreshToken)).subscribe()
                     return@flatMap Mono.just(AuthenticationResponse(
                         token, refreshToken
                     ))
