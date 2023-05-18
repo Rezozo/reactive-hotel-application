@@ -14,7 +14,7 @@ interface JwtService {
     fun generateToken(extraClaims: Map<String, Any>, userDetails: UserDetails) : String
     fun generateTokenUseRefreshToken(refreshToken: String) : Mono<String>
     fun refreshToken(token: String) : String
-    fun isTokenValid(token: String, userDetails: UserDetails) : Boolean
+    fun isTokenValid(token: String, userDetails: UserDetails) : Mono<Boolean>
     fun isTokenExpired(token: String) : Boolean
     fun extractExpiration(token: String) : Date
     fun extractAllClaims(token: String) : Claims
