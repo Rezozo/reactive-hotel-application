@@ -1,6 +1,7 @@
 package com.hotel.app.service.impl
 
 import com.hotel.app.service.JwtService
+import com.hotel.app.service.TokenService
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
@@ -15,16 +16,16 @@ import java.time.Period
 import java.util.*
 import java.util.function.Function
 
-class JwtServiceImpl : JwtService {
+class JwtServiceImpl(private var tokenService: TokenService) : JwtService {
 
     @Value("\${hotel.secret-key}")
     private lateinit var SECRET_KEY: String
 
     @Value("\${hotel.token.expiration}")
-    private val tokenExpiration: Long = 0
+    private val TOKEN_EXPIRATION: Long = 0
 
     @Value("\${hotel.refreshtoken.expiration}")
-    private lateinit var refreshTokenExpiration: String
+    private lateinit var REFRESH_TOKEN_EXPIRATION: String
 
     override fun extractUserLogin(token: String): String {
         return extractClaim(token, { obj: Claims? -> obj!!.subject })
@@ -45,7 +46,7 @@ class JwtServiceImpl : JwtService {
             .setClaims(extraClaims)
             .setSubject(userDetails.username)
             .setIssuedAt(Date(System.currentTimeMillis()))
-            .setExpiration(Date(System.currentTimeMillis() + tokenExpiration))
+            .setExpiration(Date(System.currentTimeMillis() + TOKEN_EXPIRATION))
             .signWith(getSignInKey(), SignatureAlgorithm.HS256)
             .compact()
     }
@@ -59,7 +60,7 @@ class JwtServiceImpl : JwtService {
             .setClaims(extraClaims)
             .setSubject(username)
             .setIssuedAt(Date(System.currentTimeMillis()))
-            .setExpiration(Date(System.currentTimeMillis() + tokenExpiration))
+            .setExpiration(Date(System.currentTimeMillis() + TOKEN_EXPIRATION))
             .signWith(getSignInKey(), SignatureAlgorithm.HS256)
             .compact())
     }
@@ -70,7 +71,7 @@ class JwtServiceImpl : JwtService {
         val extraClaims: Map<String, Any> = HashMap(claims)
 
         val now : Instant = Instant.now()
-        val newExpirationInstant : Instant = now.plus(Period.parse(refreshTokenExpiration))
+        val newExpirationInstant : Instant = now.plus(Period.parse(REFRESH_TOKEN_EXPIRATION))
         val newExpiration : Date = Date.from(newExpirationInstant)
 
         return Jwts.builder()
@@ -82,16 +83,18 @@ class JwtServiceImpl : JwtService {
             .compact()
     }
 
-    override fun isTokenValid(token: String, userDetails: UserDetails): Boolean {
+    override fun isTokenValid(token: String, userDetails: UserDetails): Mono<Boolean> {
         var newToken = token
         val username = extractUserLogin(token)
-        if (username != userDetails.username) {
-            return false
-        }
-        if (isTokenExpired(token)) {
-            newToken = refreshToken(token)
-        }
-        return !isTokenExpired(newToken)
+        if (username != userDetails.username) return Mono.just(false)
+
+        if (isTokenExpired(token)) newToken = refreshToken(token)
+
+        return tokenService.getByToken(token)
+            .map { row ->
+                if (row == null) return@map false
+                else return@map !isTokenExpired(newToken)
+            }
     }
 
     override fun isTokenExpired(token: String): Boolean {
